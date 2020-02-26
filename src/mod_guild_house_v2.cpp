@@ -465,7 +465,6 @@ public:
             guildData->posZ = fields[4].GetFloat();
 
             player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, player->GetOrientation());
-            player->SetPhaseMask(guildData->phase, true);
 
         } while (result->NextRow());
     }
@@ -580,7 +579,7 @@ public:
     {
         Player* player = handler->GetSession()->GetPlayer();
 
-        if (player->GetGuild()->GetLeaderGUID() != player->GetGUID()) {
+        if (!player->GetGuild() || (player->GetGuild()->GetLeaderGUID() != player->GetGUID())) {
             handler->SendSysMessage("You must be the Guild Master of a guild to use this command!");
             handler->SetSentErrorMessage(true);
             return false;
@@ -665,7 +664,6 @@ public:
             guildData->posZ = fields[6].GetFloat();
 
             player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, player->GetOrientation());
-            player->SetPhaseMask(guildData->phase, true);
 
         } while (result->NextRow());
 
@@ -695,10 +693,25 @@ public:
     }
 };
 
+class GuildHouseGlobal : public GlobalScript
+{
+public:
+    GuildHouseGlobal() : GlobalScript("GuildHouseGlobal") {}
+
+    void OnBeforeWorldObjectSetPhaseMask(WorldObject const* worldObject, uint32& /*oldPhaseMask*/, uint32& /*newPhaseMask*/, bool& useCombinedPhases, bool& /*update*/) override
+    {
+        if (worldObject->GetZoneId() == 876)
+            useCombinedPhases = false;
+        else
+            useCombinedPhases = true;
+    }
+};
+
 void AddGuildHouseV2Scripts() {
     new GuildHelper();
     new GuildHouseSeller();
     new GuildHouseV2PlayerScript();
     new GuildHouseCommand();
+    new GuildHouseGlobal();
 }
 
