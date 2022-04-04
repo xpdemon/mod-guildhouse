@@ -5,7 +5,7 @@
 
 ## Important notes
 
-You have to use at least AzerothCore commit [8f5c628](https://github.com/azerothcore/azerothcore-wotlk/commit/8f5c628836f7446d8d876bee7f5bdff5a35aaa2f).
+You have to use at least AzerothCore commit [77f1363](https://github.com/azerothcore/azerothcore-wotlk/commit/77f13636b75f9b25fc1290e297cd002e7df3c89b).
 
 ## Description
 
@@ -26,19 +26,16 @@ All guilds will get their own phasing system and then the guild master can purch
 
 ## How to use ingame
 
-1) After installation, as GM you will need to: `.npc add 70101` -> somewhere public and accessible by other players.
-2) Players can purchase a guild house from the added NPC, then either teleport to the guildhouse via the NPC or chat: `.guildhouse tele`
+1) After installation, as GM you will need to: `.npc add 500030` -> somewhere public and accessible by other players.
+2) Players can purchase a guild house from the added NPC, then either teleport to the guildhouse via the NPC or chat: `.guildhouse tele` or `.gh tele`
 3) Each new Guild House starts with a portal to either Orgrimmar or Stormwind, based on Team (ALLIANCE / HORDE), and the Guild House Assistant.
 4) Speak with the Guild House Assistant to begin purchasing additions to your Guild House!
-
-## Requirements
-
-- AzerothCore v1.0.1+
+5) Players in guild with proper rank will be able to spawn the Assistant with chat commands `.guildhouse butler` or `.gh butler`
 
 ## Installation
 
 ```
-1) Place the module under the `modules` directory of your AzerothCore source. 
+1) Place the module under the `modules` directory of your AzerothCore source.
 2) Import the SQL files manually to the right Database (auth, world or characters)
 3) Re-run cmake and launch a clean build of AzerothCore.
 ```
@@ -52,5 +49,7 @@ If you need to change the module configuration, go to your server configuration 
 * [Talamortis](https://github.com/talamortis) (Original author of the module)
 * [Rochet2](https://github.com/Rochet2/): Thanks for the help with the phasing situation & General support
 * [rbedfordpro](https://github.com/rbedfordpro) & [WiZZy](https://github.com/wizzymore)
+* [Nelnamara - Porkserver](https://github.com/Porkserver) & [SoulSeekkor](https://github.com/SoulSeekkor) 2022 rework, crash fixes and new additions
+* [Bogir](https://github.com/Bogir) For being amazing and forever helpful
 
 AzerothCore: [repository](https://github.com/azerothcore) - [website](http://azerothcore.org/) - [discord chat community](https://discord.gg/64FH6Y8)
