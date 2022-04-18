@@ -524,6 +524,25 @@ public:
             player->SetPhaseMask(GetNormalPhase(player), true);
     }
 
+    bool OnBeforeTeleport(Player *player, uint32 mapid, float x, float y, float z, float orientation, uint32 options, Unit *target)
+	{
+		(void)mapid;
+		(void)x;
+		(void)y;
+		(void)z;
+		(void)orientation;
+		(void)options;
+		(void)target;
+
+        if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
+		{
+			// Remove the rested state when teleporting from the guild house
+			player->RemoveRestState();
+		}
+		
+		return true;
+	}
+
     uint32 GetNormalPhase(Player *player) const
     {
         if (player->IsGameMaster())
@@ -561,6 +580,9 @@ public:
 
         if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
         {
+			// Set the guild house as a rested area
+			player->SetRestState(0);
+			
             // If player is not in a guild he doesnt have a guild house teleport away
             // TODO: What if they are in a guild, but somehow are in the wrong phaseMask and seeing someone else's area?
 
