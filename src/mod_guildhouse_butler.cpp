@@ -395,7 +395,7 @@ public:
         }
 
         // TODO: is it really necessary to add both the real and DB table guid here ?
-        sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGOData(guidLow));
+        sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGameObjectData(guidLow));
         player->ModifyMoney(-cost);
         CloseGossipMenuFor(player);
     }
