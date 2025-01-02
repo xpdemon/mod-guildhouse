@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS `guild_house_spawns`
     `posZ`        float   NOT NULL DEFAULT '0',
     `orientation` float   NOT NULL DEFAULT '0',
     `comment`     varchar(500)     DEFAULT '0',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `entry` (`entry`)
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 51
   DEFAULT CHARSET = utf8;
