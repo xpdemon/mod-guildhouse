@@ -248,8 +248,8 @@ public:
             LOG_INFO("modules", "GUILDHOUSE: GuildId: '{}' has purchased a guildhouse", player->GetGuildId());
 
             // Spawn a portal and the guild house butler automatically as part of purchase.
-            SpawnStarterPortal(player, map);
-            SpawnButlerNPC(player, map);
+            //SpawnStarterPortal(player, map);
+            //SpawnButlerNPC(player, map);
             CloseGossipMenuFor(player);
         }
 
