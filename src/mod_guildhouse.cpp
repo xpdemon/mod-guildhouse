@@ -453,7 +453,7 @@ public:
     static void TeleportGuildHouse(const Guild *guild, Player *player, const Creature *creature) {
         auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
         const QueryResult result = CharacterDatabase.Query(
-            "SELECT `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instance_id` FROM `guild_house` WHERE `guild`={}",
+            "SELECT `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
             guild->GetId());
 
         if (!result) {
@@ -489,12 +489,12 @@ public:
                 SpawnButlerNPC(player, map);
 
                 auto resultUpdate = CharacterDatabase.Query(
-                    "Update `guild_house` SET `instance_id` = {} WHERE `guild`={}",
+                    "Update `guild_house` SET `instanceId` = {} WHERE `guild`={}",
                     player->GetInstanceId(), guild->GetId());
 
                 auto guildToInstance = CharacterDatabase.Query(
                     "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
-                    "SELECT gm.`guid`, gh.`ìnstance_id`,0 "
+                    "SELECT gm.`guid`, gh.`instanceId`,0 "
                     "FROM `guild_member` gm "
                     "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
                     "WHERE gm.`guildid` = {}",
@@ -717,7 +717,7 @@ public:
 
         auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
         QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instance_id` FROM `guild_house` WHERE `guild`={}",
+            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
             player->GetGuildId());
 
         if (!result) {
