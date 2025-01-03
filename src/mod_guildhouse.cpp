@@ -174,10 +174,10 @@ public:
                 break;
             case 101: // Monastery
                 map = 44;
-                posX = 266.095f;
-                posY = -99.3857f;
+                posX = 76.02f;
+                posY = -0.76f;
                 posZ = 18.6794f;
-                ori = 1.46117f;
+                ori = 6.22f;
             case 5: // close
                 CloseGossipMenuFor(player);
                 break;
@@ -363,9 +363,10 @@ public:
     }
 
     void OnMapChanged(Player *player) override {
-        if (player->GetMapId() == 44)
+        if (player->GetMapId() == 44) {
             CheckPlayer(player);
-        else
+            SpawStarter(player);
+        } else
             player->SetPhaseMask(GetNormalPhase(player), true);
     }
 
@@ -406,6 +407,40 @@ public:
             return phase;
     }
 
+    static void SpawStarter(Player *player) {
+        if (player->GetMapId() == 44) {
+            auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
+            QueryResult result = CharacterDatabase.Query(
+                "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
+                player->GetGuildId());
+
+            if (result) {
+                do {
+                    Field *fields = result->Fetch();
+                    guildData->phase = fields[2].Get<uint32>();
+                    guildData->instanceId = fields[8].Get<uint32>();
+                    guildData->firstVisit = fields[9].Get<bool>();
+                } while (result->NextRow());
+            }
+
+            if (guildData->firstVisit) {
+                CharacterDatabase.Query(
+                    "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
+                    player->GetInstanceId(), false, player->GetGuild()->GetId());
+                CharacterDatabase.Query(
+                    "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
+                    "SELECT gm.`guid`, gh.`instanceId`,0 "
+                    "FROM `guild_member` gm "
+                    "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
+                    "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
+                    player->GetGuild()->GetId(), player->GetGUID());
+
+                GuildHouse_Utils::SpawnStarterPortal(player, 44);
+                GuildHouse_Utils::SpawnButlerNPC(player, 44);
+            }
+        }
+    }
+
     static void CheckPlayer(Player *player) {
         auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
         QueryResult result = CharacterDatabase.Query(
@@ -414,16 +449,8 @@ public:
 
         if (result) {
             do {
-                // commented out due to travis, but keeping for future expansion into other areas
                 Field *fields = result->Fetch();
-                // uint32 id = fields[0].Get<uint32>();        // fix for travis
-                // uint32 guild = fields[1].Get<uint32>();     // fix for travis
                 guildData->phase = fields[2].Get<uint32>();
-                // uint32 map = fields[3].Get<uint32>();       // fix for travis
-                // guildData->posX = fields[4].Get<float>();   // fix for travis
-                // guildData->posY = fields[5].Get<float>();   // fix for travis
-                // guildData->posZ = fields[6].Get<float>();   // fix for travis
-                // guildData->ori = fields[7].Get<float>();   // fix for travis
                 guildData->instanceId = fields[8].Get<uint32>();
                 guildData->firstVisit = fields[9].Get<bool>();
             } while (result->NextRow());
@@ -448,26 +475,6 @@ public:
         } else if (player->GetMapId() == 44) {
             player->SetRestState(0);
             player->SetPhaseMask(guildData->phase, true);
-
-            if (guildData->firstVisit) {
-                LOG_ERROR("modules", "GUILDHOUSE: First visit to Monastery, setting phase to {}", guildData->phase);
-
-                CharacterDatabase.Query(
-                    "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
-                    player->GetInstanceId(),false,player->GetGuild()->GetId());
-
-
-                CharacterDatabase.Query(
-                    "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
-                    "SELECT gm.`guid`, gh.`instanceId`,0 "
-                    "FROM `guild_member` gm "
-                    "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
-                    "WHERE gm.`guildid` = {}",
-                    player->GetGuild()->GetId());
-
-                GuildHouse_Utils::SpawnStarterPortal(player, 44);
-                GuildHouse_Utils::SpawnButlerNPC(player, 44);
-            }
 
             if (!result || !player->GetGuild()) {
                 ChatHandler(player->GetSession()).PSendSysMessage(

@@ -97,22 +97,6 @@ public:
                 return false;
             }
 
-            // -------------------------------------
-            // Vérifier si on a déjà stocké oldPhaseMask
-            // -------------------------------------
-            if (!player->CustomData.Get<GuildHouseData>("GuildHouseOldPhase"))
-            {
-                // On crée un nouvel objet pour stocker la phase d'origine
-                auto data = new GuildHouseData();
-                data->oldPhaseMask = player->GetPhaseMask();
-
-                // On l'enregistre dans la DataMap
-                player->CustomData.Set("GuildHouseOldPhase", data);
-
-                // Maintenant, on applique la phase de la guilde
-                uint32 guildPhase = GuildHouse_Utils::GetGuildPhase(player);
-                player->SetPhaseMask(guildPhase, true);
-            }
         }
         else
         {
@@ -261,30 +245,6 @@ public:
                 SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
                 break;
             }
-
-            // -------------------------------------------
-            // ICI, LE CASE 9: on restaure d'abord la phase
-            // avant de rappeler OnGossipHello
-            // -------------------------------------------
-            case 9: // Go back!
-            {
-                // Récupérer l'info stockée dans la DataMap
-                auto data = player->CustomData.Get<GuildHouseData>("GuildHouseOldPhase");
-                if (data)
-                {
-                    // Restaurer l'ancien phaseMask
-                    player->SetPhaseMask(data->oldPhaseMask, true);
-                    // Nettoyer la DataMap et libérer la mémoire
-                    player->CustomData.Erase("GuildHouseOldPhase");
-                    delete data;
-                }
-                
-                // Dans le code d’origine, on rappelait OnGossipHello
-                // On le garde pour rester 100% fidèle.
-                OnGossipHello(player, creature);
-
-                break;
-            }
             case 10: // PVP toggle (inutilisé ?)
                 break;
 
@@ -386,6 +346,7 @@ public:
      ************************************************************/
     void SpawnNPC(uint32 entry, Player* player)
     {
+        auto mapId = player->GetMapId();
         if (player->FindNearestCreature(entry, VISIBILITY_RANGE, true))
         {
             ChatHandler(player->GetSession()).PSendSysMessage("Vous avez déjà cette créature!");
@@ -394,7 +355,7 @@ public:
         }
 
         float posX, posY, posZ, ori;
-        QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={}", entry);
+        QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} AND `map`={}", entry, mapId);
         if (!result)
             return;
 
@@ -438,6 +399,7 @@ public:
      ************************************************************/
     void SpawnObject(uint32 entry, Player* player)
     {
+        auto mapId = player->GetMapId();
         if (player->FindNearestGameObject(entry, VISIBLE_RANGE))
         {
             ChatHandler(player->GetSession()).PSendSysMessage("Vous avez déjà cet objet!");
@@ -446,7 +408,7 @@ public:
         }
 
         float posX, posY, posZ, ori;
-        QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={}", entry);
+        QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} and `map`= {}", entry, mapId);
         if (!result)
             return;
 
