@@ -31,6 +31,7 @@ public:
     float posZ;
     float ori;
     uint32 instanceId;
+    bool firstVisit;
 };
 
 class GuildHelper : public GuildScript {
@@ -290,142 +291,6 @@ public:
         return true;
     }
 
-    static void SpawnStarterPortal(Player *player, uint32 mapId) {
-        uint32 entry = 0;
-        float posX;
-        float posY;
-        float posZ;
-        float ori;
-
-
-        Map *map = sMapMgr->FindMap(mapId, player->GetInstanceId());
-
-        if (player->GetTeamId() == TEAM_ALLIANCE) {
-            // Portal to Stormwind
-            entry = 500000;
-        } else {
-            // Portal to Orgrimmar
-            entry = 500004;
-        }
-
-        if (entry == 0) {
-            LOG_INFO("modules", "Error with SpawnStarterPortal in GuildHouse Module!");
-            return;
-        }
-
-        QueryResult result = WorldDatabase.Query(
-            "SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={}", entry);
-
-        if (!result) {
-            LOG_INFO("modules", "GUILDHOUSE: Unable to find data on portal for entry: {}", entry);
-            return;
-        }
-
-        do {
-            Field *fields = result->Fetch();
-            posX = fields[0].Get<float>();
-            posY = fields[1].Get<float>();
-            posZ = fields[2].Get<float>();
-            ori = fields[3].Get<float>();
-        } while (result->NextRow());
-
-        uint32 objectId = entry;
-        if (!objectId) {
-            LOG_INFO("modules", "GUILDHOUSE: objectId IS NULL, should be '{}'", entry);
-            return;
-        }
-
-        const GameObjectTemplate *objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
-
-        if (!objectInfo) {
-            LOG_INFO("modules", "GUILDHOUSE: objectInfo is NULL!");
-            return;
-        }
-
-        if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId)) {
-            LOG_INFO("modules", "GUILDHOUSE: Unable to find displayId??");
-            return;
-        }
-
-        GameObject *object = sObjectMgr->IsGameObjectStaticTransport(objectInfo->entry)
-                                 ? new StaticTransport()
-                                 : new GameObject();
-        ObjectGuid::LowType guidLow = player->GetMap()->GenerateLowGuid<HighGuid::GameObject>();
-
-        if (!object->Create(guidLow, objectInfo->entry, map, GuildHouse_Utils::GetGuildPhase(player), posX, posY, posZ,
-                            ori, G3D::Quat(), 0, GO_STATE_READY)) {
-            delete object;
-            LOG_INFO("modules", "GUILDHOUSE: Unable to create object!!");
-            return;
-        }
-
-        // fill the gameobject data and save to the db
-        object->SaveToDB(sMapMgr->FindMap(mapId, player->GetInstanceId())->GetId(),
-                         (1 << sMapMgr->FindMap(mapId, player->GetInstanceId())->GetSpawnMode()),
-                         GuildHouse_Utils::GetGuildPhase(player));
-        guidLow = object->GetSpawnId();
-        // delete the old object and do a clean load from DB with a fresh new GameObject instance.
-        // this is required to avoid weird behavior and memory leaks
-        delete object;
-
-        object = sObjectMgr->IsGameObjectStaticTransport(objectInfo->entry) ? new StaticTransport() : new GameObject();
-        // this will generate a new guid if the object is in an instance
-        if (!object->LoadGameObjectFromDB(guidLow, sMapMgr->FindMap(mapId, player->GetInstanceId()), true)) {
-            delete object;
-            return;
-        }
-
-        // TODO: is it really necessary to add both the real and DB table guid here ?
-        sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGameObjectData(guidLow));
-        CloseGossipMenuFor(player);
-    }
-
-    static void SpawnButlerNPC(const Player *player, uint32 mapId) {
-        uint32 entry = 500031;
-        float posX;
-        float posY;
-        float posZ;
-        float ori;
-
-        Map *map = sMapMgr->FindMap(mapId, player->GetInstanceId());
-        auto *creature = new Creature();
-
-        QueryResult result = WorldDatabase.Query(
-            "SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} AND `map`={}",
-            entry, mapId);
-
-        if (!result) {
-            LOG_INFO("modules", "GUILDHOUSE: Unable to find data for entry: {}", entry);
-            return;
-        }
-
-        do {
-            Field *fields = result->Fetch();
-            posX = fields[0].Get<float>();
-            posY = fields[1].Get<float>();
-            posZ = fields[2].Get<float>();
-            ori = fields[3].Get<float>();
-        } while (result->NextRow());
-
-
-        if (!creature->Create(map->GenerateLowGuid<HighGuid::Unit>(), map, player->GetPhaseMaskForSpawn(), entry, 0,
-                              posX, posY, posZ, ori)) {
-            delete creature;
-            return;
-        }
-        creature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), GuildHouse_Utils::GetGuildPhase(player));
-        uint32 lowguid = creature->GetSpawnId();
-
-        creature->CleanupsBeforeDelete();
-        delete creature;
-        creature = new Creature();
-        if (!creature->LoadCreatureFromDB(lowguid, map)) {
-            delete creature;
-            return;
-        }
-
-        sObjectMgr->AddCreatureToGrid(lowguid, sObjectMgr->GetCreatureData(lowguid));
-    }
 
     static bool BuyGuildHouse(const Guild *guild, Player *player, const Creature *creature) {
         QueryResult result = CharacterDatabase.Query("SELECT `id`, `guild` FROM `guild_house` WHERE `guild`={}",
@@ -483,25 +348,7 @@ public:
             guildData->ori = fields[5].Get<float>();
             guildData->instanceId = fields[6].Get<uint32>();
 
-            if (guildData->instanceId == 0 and map != 1) {
-                player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
-                SpawnStarterPortal(player, map);
-                SpawnButlerNPC(player, map);
-
-                auto resultUpdate = CharacterDatabase.Query(
-                    "Update `guild_house` SET `instanceId` = {} WHERE `guild`={}",
-                    player->GetInstanceId(), guild->GetId());
-
-                auto guildToInstance = CharacterDatabase.Query(
-                    "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
-                    "SELECT gm.`guid`, gh.`instanceId`,0 "
-                    "FROM `guild_member` gm "
-                    "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
-                    "WHERE gm.`guildid` = {}",
-                    guild->GetId());
-            } else {
-                player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
-            }
+            player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
         } while (result->NextRow());
     }
 };
@@ -514,7 +361,6 @@ public:
     void OnLogin(Player *player) override {
         CheckPlayer(player);
     }
-
 
     void OnMapChanged(Player *player) override {
         if (player->GetMapId() == 44)
@@ -540,7 +386,7 @@ public:
         (void) options;
         (void) target;
 
-        if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
+        if (player->GetZoneId() == 876 && player->GetAreaId() == 876 || player->GetMapId() == 44) // GM Island
         {
             // Remove the rested state when teleporting from the guild house
             player->RemoveRestState();
@@ -563,7 +409,7 @@ public:
     static void CheckPlayer(Player *player) {
         auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
         QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation` FROM guild_house WHERE `guild` = {}",
+            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,ìnstanceId`,`firstVisit' FROM guild_house WHERE `guild` = {}",
             player->GetGuildId());
 
         if (result) {
@@ -578,6 +424,8 @@ public:
                 // guildData->posY = fields[5].Get<float>();   // fix for travis
                 // guildData->posZ = fields[6].Get<float>();   // fix for travis
                 // guildData->ori = fields[7].Get<float>();   // fix for travis
+                guildData->instanceId = fields[8].Get<uint32>();
+                guildData->firstVisit = fields[9].Get<bool>();
             } while (result->NextRow());
         }
 
@@ -597,9 +445,29 @@ public:
             }
 
             player->SetPhaseMask(guildData->phase, true);
-        } else if (player->GetZoneId() == 44) {
+        } else if (player->GetMapId() == 44) {
             player->SetRestState(0);
             player->SetPhaseMask(guildData->phase, true);
+
+            if (guildData->firstVisit) {
+                LOG_ERROR("modules", "GUILDHOUSE: First visit to Monastery, setting phase to {}", guildData->phase);
+
+                CharacterDatabase.Query(
+                    "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
+                    player->GetInstanceId(),false,player->GetGuild()->GetId());
+
+
+                CharacterDatabase.Query(
+                    "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
+                    "SELECT gm.`guid`, gh.`instanceId`,0 "
+                    "FROM `guild_member` gm "
+                    "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
+                    "WHERE gm.`guildid` = {}",
+                    player->GetGuild()->GetId());
+
+                GuildHouse_Utils::SpawnStarterPortal(player, 44);
+                GuildHouse_Utils::SpawnButlerNPC(player, 44);
+            }
 
             if (!result || !player->GetGuild()) {
                 ChatHandler(player->GetSession()).PSendSysMessage(

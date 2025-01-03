@@ -1,1 +1,1 @@
-ALTER TABLE `guild_house` ADD ìnstanceId INT(11) default NULL;
+ALTER TABLE `guild_house` ADD ìnstanceId INT(11) NOT NULL default 0 AFTER `orientation`;
