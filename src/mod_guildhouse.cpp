@@ -409,7 +409,7 @@ public:
     static void CheckPlayer(Player *player) {
         auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
         QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`ìnstanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
+            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
             player->GetGuildId());
 
         if (result) {
