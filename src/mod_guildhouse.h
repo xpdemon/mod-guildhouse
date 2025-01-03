@@ -6,9 +6,10 @@
 #define MOD_GUILDHOUSE_H
 #include "Define.h"
 #include "Guild.h"
+#include "MapMgr.h"
 
 
-class GuildHouse_Utils final {
+class GuildHouse_Utils {
 
 public:
     virtual ~GuildHouse_Utils() = default;
@@ -95,7 +96,7 @@ public:
                                  : new GameObject();
         ObjectGuid::LowType guidLow = player->GetMap()->GenerateLowGuid<HighGuid::GameObject>();
 
-        if (!object->Create(guidLow, objectInfo->entry, map, GuildHouse_Utils::GetGuildPhase(player), posX, posY, posZ,
+        if (!object->Create(guidLow, objectInfo->entry, map, GetGuildPhase(player), posX, posY, posZ,
                             ori, G3D::Quat(), 0, GO_STATE_READY)) {
             delete object;
             LOG_INFO("modules", "GUILDHOUSE: Unable to create object!!");
