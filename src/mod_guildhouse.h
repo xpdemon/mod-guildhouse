@@ -10,11 +10,26 @@
 
 
 class GuildHouse_Utils {
-
 public:
     virtual ~GuildHouse_Utils() = default;
-    static uint32 GetGuildPhase(const Guild* guild )
-    {
+    class GuildData : public DataMap::Base {
+    public:
+        GuildData(): phase(0), posX(0), posY(0), posZ(0), ori(0), instanceId(0), firstVisit(false) {
+        }
+
+        GuildData(uint32 phase, float posX, float posY, float posZ, float ori) : phase(phase), posX(posX), posY(posY),
+            posZ(posZ), ori(ori), instanceId(0), firstVisit(true) {
+        }
+
+        uint32 phase;
+        float posX;
+        float posY;
+        float posZ;
+        float ori;
+        uint32 instanceId;
+        bool firstVisit;
+    };
+    static uint32 GetGuildPhase(const Guild *guild) {
         // Version "simple"
         //return player->GetGuildId() + 10;
 
@@ -23,8 +38,7 @@ public:
             return 0;
         return 1 << (guild->GetId() - 1);
     }
-    static uint32 GetGuildPhase(const Player* player)
-    {
+    static uint32 GetGuildPhase(const Player *player) {
         // Version "simple"
         //return player->GetGuildId() + 10;
 
@@ -155,7 +169,7 @@ public:
                               posX, posY, posZ, ori)) {
             delete creature;
             return;
-                              }
+        }
         creature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), GetGuildPhase(player));
         uint32 lowguid = creature->GetSpawnId();
 
@@ -168,6 +182,64 @@ public:
         }
 
         sObjectMgr->AddCreatureToGrid(lowguid, sObjectMgr->GetCreatureData(lowguid));
+    }
+    static void teleportToDefault(Player *player) {
+        if (player->GetTeamId() == TEAM_ALLIANCE)
+            player->TeleportTo(0, -8833.379883f, 628.627991f, 94.006599f, 1.0f);
+        else
+            player->TeleportTo(1, 1486.048340f, -4415.140625f, 24.187496f, 0.13f);
+    }
+    static uint32 GetNormalPhase(const Player *player) {
+        if (player->IsGameMaster())
+            return PHASEMASK_ANYWHERE;
+
+        uint32 phase = player->GetPhaseByAuras();
+        if (!phase)
+            return PHASEMASK_NORMAL;
+        else
+            return phase;
+    }
+    static void CheckPlayer(Player *player) {
+        auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
+        QueryResult result = CharacterDatabase.Query(
+            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
+            player->GetGuildId());
+
+        if (result) {
+            do {
+                Field *fields = result->Fetch();
+                guildData->phase = fields[2].Get<uint32>();
+                guildData->instanceId = fields[8].Get<uint32>();
+                guildData->firstVisit = fields[9].Get<bool>();
+            } while (result->NextRow());
+        }
+
+        if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
+        {
+            // Set the guild house as a rested area
+            player->SetRestState(0);
+
+            // If player is not in a guild he doesnt have a guild house teleport away
+            // TODO: What if they are in a guild, but somehow are in the wrong phaseMask and seeing someone else's area?
+
+            if (!result || !player->GetGuild()) {
+                ChatHandler(player->GetSession()).PSendSysMessage(
+                    "Votre guilde ne possède pas de Maison de Guilde. Vous pouvez en acheter une dès maintenant !");
+                teleportToDefault(player);
+                return;
+            }
+
+            player->SetPhaseMask(guildData->phase, true);
+        } else if (player->GetMapId() == 44) {
+            player->SetPhaseMask(guildData->phase, true);
+
+            if (!result || !player->GetGuild()) {
+                ChatHandler(player->GetSession()).PSendSysMessage(
+                    "Votre guilde ne possède pas de Maison de Guilde. Vous pouvez en acheter une dès maintenant !");
+                teleportToDefault(player);
+            }
+        } else
+            player->SetPhaseMask(GetNormalPhase(player), true);
     }
 
 };

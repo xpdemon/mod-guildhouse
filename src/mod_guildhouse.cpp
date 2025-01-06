@@ -16,23 +16,6 @@
 #include "Maps/MapMgr.h"
 #include "mod_guildhouse.h"
 
-class GuildData : public DataMap::Base {
-public:
-    GuildData() {
-    }
-
-    GuildData(uint32 phase, float posX, float posY, float posZ, float ori) : phase(phase), posX(posX), posY(posY),
-                                                                             posZ(posZ), ori(ori) {
-    }
-
-    uint32 phase;
-    float posX;
-    float posY;
-    float posZ;
-    float ori;
-    uint32 instanceId;
-    bool firstVisit;
-};
 
 class GuildHelper : public GuildScript {
 public:
@@ -316,7 +299,7 @@ public:
     }
 
     static void TeleportGuildHouse(const Guild *guild, Player *player, const Creature *creature) {
-        auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
+        auto *guildData = player->CustomData.GetDefault<GuildHouse_Utils::GuildData>("phase");
         const QueryResult result = CharacterDatabase.Query(
             "SELECT `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
             guild->GetId());
@@ -359,22 +342,16 @@ public:
     }
 
     void OnLogin(Player *player) override {
-        CheckPlayer(player);
+        GuildHouse_Utils::CheckPlayer(player);
     }
 
-    void OnMapChanged(Player *player) override {
-        if (player->GetMapId() == 44) {
-            CheckPlayer(player);
-            SpawStarter(player);
-        } else
-            player->SetPhaseMask(GetNormalPhase(player), true);
-    }
+
 
     void OnUpdateZone(Player *player, uint32 newZone, uint32 /*newArea*/) override {
         if (newZone == 876)
-            CheckPlayer(player);
+            GuildHouse_Utils::CheckPlayer(player);
         else
-            player->SetPhaseMask(GetNormalPhase(player), true);
+            player->SetPhaseMask(GuildHouse_Utils::GetNormalPhase(player), true);
     }
 
     bool OnBeforeTeleport(Player *player, uint32 mapid, float x, float y, float z, float orientation, uint32 options,
@@ -387,109 +364,13 @@ public:
         (void) options;
         (void) target;
 
-        if (player->GetZoneId() == 876 && player->GetAreaId() == 876 || player->GetMapId() == 44) // GM Island
+        if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
         {
             // Remove the rested state when teleporting from the guild house
             player->RemoveRestState();
         }
 
         return true;
-    }
-
-    static uint32 GetNormalPhase(const Player *player) {
-        if (player->IsGameMaster())
-            return PHASEMASK_ANYWHERE;
-
-        uint32 phase = player->GetPhaseByAuras();
-        if (!phase)
-            return PHASEMASK_NORMAL;
-        else
-            return phase;
-    }
-
-    static void SpawStarter(Player *player) {
-        if (player->GetMapId() == 44) {
-            auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
-            QueryResult result = CharacterDatabase.Query(
-                "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
-                player->GetGuildId());
-
-            if (result) {
-                do {
-                    Field *fields = result->Fetch();
-                    guildData->phase = fields[2].Get<uint32>();
-                    guildData->instanceId = fields[8].Get<uint32>();
-                    guildData->firstVisit = fields[9].Get<bool>();
-                } while (result->NextRow());
-            }
-
-            if (guildData->firstVisit) {
-                CharacterDatabase.Query(
-                    "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
-                    player->GetInstanceId(), false, player->GetGuild()->GetId());
-                CharacterDatabase.Query(
-                    "INSERT INTO `character_instance` (`guid`, `instance`,`extended`) "
-                    "SELECT gm.`guid`, gh.`instanceId`,0 "
-                    "FROM `guild_member` gm "
-                    "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
-                    "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
-                    player->GetGuild()->GetId(), player->GetGUID());
-
-                GuildHouse_Utils::SpawnStarterPortal(player, 44);
-                GuildHouse_Utils::SpawnButlerNPC(player, 44);
-            }
-        }
-    }
-
-    static void CheckPlayer(Player *player) {
-        auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
-        QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
-            player->GetGuildId());
-
-        if (result) {
-            do {
-                Field *fields = result->Fetch();
-                guildData->phase = fields[2].Get<uint32>();
-                guildData->instanceId = fields[8].Get<uint32>();
-                guildData->firstVisit = fields[9].Get<bool>();
-            } while (result->NextRow());
-        }
-
-        if (player->GetZoneId() == 876 && player->GetAreaId() == 876) // GM Island
-        {
-            // Set the guild house as a rested area
-            player->SetRestState(0);
-
-            // If player is not in a guild he doesnt have a guild house teleport away
-            // TODO: What if they are in a guild, but somehow are in the wrong phaseMask and seeing someone else's area?
-
-            if (!result || !player->GetGuild()) {
-                ChatHandler(player->GetSession()).PSendSysMessage(
-                    "Votre guilde ne possède pas de Maison de Guilde. Vous pouvez en acheter une dès maintenant !");
-                teleportToDefault(player);
-                return;
-            }
-
-            player->SetPhaseMask(guildData->phase, true);
-        } else if (player->GetMapId() == 44) {
-            player->SetRestState(0);
-            player->SetPhaseMask(guildData->phase, true);
-
-            if (!result || !player->GetGuild()) {
-                ChatHandler(player->GetSession()).PSendSysMessage(
-                    "Votre guilde ne possède pas de Maison de Guilde. Vous pouvez en acheter une dès maintenant !");
-                teleportToDefault(player);
-            }
-        } else
-            player->SetPhaseMask(GetNormalPhase(player), true);
-    }
-
-    static void teleportToDefault(Player *player) {
-        if (player->GetTeamId() == TEAM_ALLIANCE)
-            player->TeleportTo(0, -8833.379883f, 628.627991f, 94.006599f, 1.0f);
-        else
-            player->TeleportTo(1, 1486.048340f, -4415.140625f, 24.187496f, 0.13f);
     }
 };
 
@@ -536,7 +417,7 @@ public:
             return false;
         }
 
-        if (player->GetAreaId() != 876) {
+        if (player->GetAreaId() != 876 || player->GetMapId() != 44) {
             handler->SendSysMessage("You must be in your Guild House to use this command!");
             handler->SetSentErrorMessage(true);
             return false;
@@ -548,10 +429,10 @@ public:
             return false;
         }
 
-        float posX = 16202.185547f;
-        float posY = 16255.916992f;
-        float posZ = 21.160221f;
-        float ori = 6.195375f;
+        float posX = player->GetPosition().GetPositionX() + 1.0f;
+        float posY = player->GetPosition().GetPositionY();
+        float posZ = player->GetPosition().GetPositionZ();
+        float ori = player->GetOrientation();
 
         auto *creature = new Creature();
         if (!creature->Create(map->GenerateLowGuid<HighGuid::Unit>(), map, GetGuildPhase(player), 500031, 0, posX, posY,
@@ -590,7 +471,7 @@ public:
             return false;
         }
 
-        auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
+        auto *guildData = player->CustomData.GetDefault<GuildHouse_Utils::GuildData>("phase");
         QueryResult result = CharacterDatabase.Query(
             "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
             player->GetGuildId());
