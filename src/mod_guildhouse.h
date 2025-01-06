@@ -7,6 +7,12 @@
 #include "Define.h"
 #include "Guild.h"
 #include "MapMgr.h"
+#include "GameObject.h"
+#include "Transport.h"
+#include "ScriptedGossip.h"
+#include "GossipDef.h"
+#include "Chat.h"
+
 
 
 class GuildHouse_Utils {

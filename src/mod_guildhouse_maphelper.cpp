@@ -2,11 +2,15 @@
 // Created by xpdemon on 03/01/2025.
 //
 
-
 #include "MapMgr.h"
-#include "mod_guildhouse.h"
+#include "ScriptMgr.h"
 #include "Player.h"
-#include "ScriptObject.h"
+#include "Configuration/Config.h"
+#include "Guild.h"
+#include "Define.h"
+#include "mod_guildhouse.h"
+
+
 
 
 class MapHelper : public MapScript<Map> {
@@ -24,7 +28,7 @@ public:
                 "FROM `guild_member` gm "
                 "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
                 "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
-                player->GetGuild()->GetId(), player->GetGUID());
+                player->GetGuild()->GetId(), player-> GetGUID().GetEntry());
 
             GuildHouse_Utils::SpawnStarterPortal(player, map->GetId());
             GuildHouse_Utils::SpawnButlerNPC(player, map->GetId());
