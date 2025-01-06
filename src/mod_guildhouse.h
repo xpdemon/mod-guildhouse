@@ -285,5 +285,61 @@ public:
             player->SetPhaseMask(GetNormalPhase(player), true);
     }
 
+
 };
+class HouseObjectManager {
+    public:
+        static GameObject *GetStarterPortal(const TeamId team, uint32 mapId) {
+            uint32 entry = team == TEAM_ALLIANCE ? 500000 : 500004;
+            float posX;
+            float posY;
+            float posZ;
+            float ori;
+
+            QueryResult result = WorldDatabase.Query(
+                "SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} and `map`={}",
+                entry, mapId);
+            do {
+                Field *fields = result->Fetch();
+                posX = fields[0].Get<float>();
+                posY = fields[1].Get<float>();
+                posZ = fields[2].Get<float>();
+                ori = fields[3].Get<float>();
+            } while (result->NextRow());
+
+            uint32 objectId = entry;
+
+            const GameObjectTemplate *objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
+            GameObject *object = sObjectMgr->IsGameObjectStaticTransport(objectInfo->entry)
+                                     ? new StaticTransport()
+                                     : new GameObject();
+            object -> SetPosition(posX, posY, posZ, ori);
+            return object;
+
+        }
+        static GameObject *GetButlerNPC(uint32 mapId) {
+            uint32 entry = 500031;
+            float posX;
+            float posY;
+            float posZ;
+            float ori;
+
+            QueryResult result = WorldDatabase.Query(
+                "SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} AND `map`={}",
+                entry, mapId);
+
+            do {
+                Field *fields = result->Fetch();
+                posX = fields[0].Get<float>();
+                posY = fields[1].Get<float>();
+                posZ = fields[2].Get<float>();
+                ori = fields[3].Get<float>();
+            } while (result->NextRow());
+
+            auto *object = new GameObject();
+            object->SetPosition(posX, posY, posZ, ori);
+            return object;
+        }
+
+    };
 #endif //MOD_GUILDHOUSE_H

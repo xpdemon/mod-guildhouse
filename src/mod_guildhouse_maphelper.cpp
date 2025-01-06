@@ -9,7 +9,7 @@
 #include "Guild.h"
 #include "Define.h"
 #include "mod_guildhouse.h"
-
+#include "InstanceScript.h"
 
 
 class MapHelperInstanceMap : public InstanceScript {
@@ -21,9 +21,15 @@ public:
         this->mapId = mapId;
     }
 
+    void Initialize() override {
+        //On empèche le reset de l'instance
+        SetBossNumber(1);
+        SetBossState(0, IN_PROGRESS);
+    };
+
 
     void OnPlayerEnter(Player *player) override {
-        ChatHandler(player->GetSession()).PSendSysMessage("Vous venez d'entrer dans l'instance Map 44 !");
+        player->GetSession()->SendAreaTriggerMessage("Bienvenue chez {}", player->GetGuild()->GetName());
         const auto *guildData = GuildHouse_Utils::GetGuildData(player);
         InitMap(player, guildData);
         player->SetPhaseMask(guildData->phase, true);
@@ -38,7 +44,7 @@ public:
     }
 
 private:
-    void InitMap(Player *player, const GuildHouse_Utils::GuildData *guild_data) const {
+    void InitMap(Player *player, const GuildHouse_Utils::GuildData *guild_data) {
         if (guild_data->firstVisit) {
             CharacterDatabase.Query(
                 "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
@@ -51,8 +57,13 @@ private:
                 "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
                 player->GetGuild()->GetId(), player->GetGUID().GetEntry());
 
-            GuildHouse_Utils::SpawnStarterPortal(player, mapId);
-            GuildHouse_Utils::SpawnButlerNPC(player, mapId);
+            auto *starterPortal = HouseObjectManager::GetStarterPortal(player->GetTeamId(), mapId);
+            auto *butler = HouseObjectManager::GetButlerNPC(mapId) -> ToCreature();
+            AddObject(starterPortal, true);
+            AddObject(butler, true);
+            SaveToDB();
+            //GuildHouse_Utils::SpawnStarterPortal(player, mapId);
+            //GuildHouse_Utils::SpawnButlerNPC(player, mapId);
         }
     }
 };
@@ -67,6 +78,7 @@ public:
     }
 
     uint32 mapId;
+
 
     // Le core appelle cette méthode pour créer l'InstanceScript
     InstanceScript *GetInstanceScript(InstanceMap *map) const override {
