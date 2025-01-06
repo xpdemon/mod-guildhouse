@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    void InitMap(Player *player, const GuildHouse_Utils::GuildData *guild_data) {
+    void InitMap(Player *player, const GuildHouse_Utils::GuildData *guild_data) const {
         if (guild_data->firstVisit) {
             CharacterDatabase.Query(
                 "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
@@ -57,12 +57,8 @@ private:
                 "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
                 player->GetGuild()->GetId(), player->GetGUID().GetEntry());
 
-            auto *starterPortal = HouseObjectManager::GetStarterPortal(player->GetTeamId(), mapId) -> ToStaticTransport();
-            auto *butler = HouseObjectManager::GetButlerNPC(mapId) -> ToCreature();
-            OnGameObjectCreate(starterPortal);
-            OnCreatureCreate(butler);
-            //GuildHouse_Utils::SpawnStarterPortal(player, mapId);
-            //GuildHouse_Utils::SpawnButlerNPC(player, mapId);
+            HouseObjectManager::SpawnStarterPortal(player, mapId);
+            HouseObjectManager::SpawnButlerNPC(player, mapId);
         }
     }
 };

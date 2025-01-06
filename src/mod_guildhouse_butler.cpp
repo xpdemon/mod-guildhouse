@@ -13,21 +13,13 @@
 #include "GuildMgr.h"
 #include "Define.h"
 #include "GossipDef.h"
-#include "DataMap.h"            // <-- Important pour DataMap::Base
+#include "DataMap.h"
 #include "GameObject.h"
 #include "Transport.h"
 #include "CreatureAI.h"
 #include "mod_guildhouse.h"
 
-/************************************************************
- * 1) STRUCTURE POUR SAUVEGARDER LE PHASEMASK
- *    On hérite de DataMap::Base pour pouvoir stocker
- *    l'objet dans player->CustomData
- ************************************************************/
-struct GuildHouseData : public DataMap::Base
-{
-    uint32 oldPhaseMask;
-};
+
 
 /************************************************************
  * VARIABLES GLOBALES (coûts, etc.) - inchangées
@@ -56,9 +48,9 @@ public:
     // ----------------------------
     // AI pour le CreatureScript
     // ----------------------------
-    struct GuildHouseSpawnerAI : public ScriptedAI
+    struct GuildHouseSpawnerAI : ScriptedAI
     {
-        GuildHouseSpawnerAI(Creature* creature) : ScriptedAI(creature) {}
+        explicit GuildHouseSpawnerAI(Creature* creature) : ScriptedAI(creature) {}
 
         void UpdateAI(uint32 /*diff*/) override
         {
@@ -130,7 +122,6 @@ public:
     /************************************************************
      * OnGossipSelect:
      * - Gère les différentes actions (cases)
-     * - Ajoute la restauration du phaseMask sur un cas dédié
      ************************************************************/
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action) override
     {
@@ -149,7 +140,7 @@ public:
                 AddGossipItemFor(player, GOSSIP_ICON_TRAINER, "Chaman",               GOSSIP_SENDER_MAIN, 26330, "Recruter un entraîneur Chaman ?", GuildHouseTrainer, false);
                 AddGossipItemFor(player, GOSSIP_ICON_TRAINER, "Démoniste",            GOSSIP_SENDER_MAIN, 26331, "Recruter un entraîneur Démoniste ?", GuildHouseTrainer, false);
                 AddGossipItemFor(player, GOSSIP_ICON_TRAINER, "Guerrier",             GOSSIP_SENDER_MAIN, 26332, "Recruter un entraîneur Guerrier ?", GuildHouseTrainer, false);
-                AddGossipItemFor(player, GOSSIP_ICON_CHAT,    "Retourner !",          GOSSIP_SENDER_MAIN, 9);
+                AddGossipItemFor(player, GOSSIP_ICON_CHAT,    "Retour",          GOSSIP_SENDER_MAIN, 9);
                 SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
                 break;
             }
@@ -336,6 +327,7 @@ public:
                 cost = GuildHousePortal;
                 SpawnObject(action, player);
                 break;
+            default: ;
         }
         return true;
     }
@@ -344,7 +336,7 @@ public:
     /************************************************************
      * SpawnNPC : Inchangé, sauf qu'il utilise GetGuildPhase(...)
      ************************************************************/
-    void SpawnNPC(uint32 entry, Player* player)
+    static void SpawnNPC(uint32 entry, Player* player)
     {
         auto mapId = player->GetMapId();
         if (player->FindNearestCreature(entry, VISIBILITY_RANGE, true))
@@ -369,7 +361,7 @@ public:
         }
         while (result->NextRow());
 
-        Creature* c = new Creature();
+        auto* c = new Creature();
         if (!c->Create(player->GetMap()->GenerateLowGuid<HighGuid::Unit>(), player->GetMap(), GuildHouse_Utils::GetGuildPhase(player), entry, 0, posX, posY, posZ, ori))
         {
             delete c;
@@ -397,7 +389,7 @@ public:
     /************************************************************
      * SpawnObject : Pareil, on utilise GetGuildPhase(...)
      ************************************************************/
-    void SpawnObject(uint32 entry, Player* player)
+    static void SpawnObject(uint32 entry, Player* player)
     {
         auto mapId = player->GetMapId();
         if (player->FindNearestGameObject(entry, VISIBLE_RANGE))

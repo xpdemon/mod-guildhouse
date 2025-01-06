@@ -36,18 +36,18 @@ public:
     }
 
     static bool RemoveGuildHouse(const Guild *guild) {
-        uint32 guildPhase = GuildHouse_Utils::GetGuildPhase(guild);
+        auto guildData = GuildHouse_Utils::GetGuildData(guild);
 
         // Lets find all of the gameobjects to be removed
         QueryResult GameobjResult = WorldDatabase.Query(
-            "SELECT `guid` FROM `gameobject` WHERE `map`=1 AND `phaseMask`={}",
-            guildPhase);
+            "SELECT `guid` FROM `gameobject` WHERE `map`= {} AND `phaseMask`={}", guildData->map,
+            guildData->phase);
         // Lets find all of the creatures to be removed
         QueryResult CreatureResult = WorldDatabase.Query(
-            "SELECT `guid` FROM `creature` WHERE `map`=1 AND `phaseMask`={}",
-            guildPhase);
+            "SELECT `guid` FROM `creature` WHERE `map`={} AND `phaseMask`={}", guildData->map, guildData->phase);
 
-        Map *map = sMapMgr->FindMap(1, 0);
+
+        Map *map = sMapMgr->FindMap(guildData ->map, guildData->instanceId);
         // Remove creatures from the deleted guild house map
         if (CreatureResult) {
             do {
@@ -83,7 +83,7 @@ public:
         }
 
         // Delete actual guild_house data from characters database
-        CharacterDatabase.Query("DELETE FROM `guild_house` WHERE `guild`={}", guild->GetId());
+        CharacterDatabase.Query("DELETE FROM `guild_house` WHERE `guild`={}", guildData ->id);
 
         return true;
     }
