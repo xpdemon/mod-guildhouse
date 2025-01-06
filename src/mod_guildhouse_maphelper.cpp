@@ -12,12 +12,33 @@
 
 
 
-
-class MapHelper : public MapScript<Map> {
+class MapHelperInstanceMap : public InstanceScript {
 public:
-    explicit MapHelper(const uint32 mapId) : MapScript(mapId) {
+    uint32 mapId;
+    // Constructeur
+    explicit MapHelperInstanceMap(InstanceMap *map, uint32 mapId)
+        : InstanceScript(map) {
+        this->mapId = mapId;
     }
-    static void InitMap(Player *player, const Map *map, const GuildHouse_Utils::GuildData *guild_data) {
+
+
+    void OnPlayerEnter(Player *player) override {
+        ChatHandler(player->GetSession()).PSendSysMessage("Vous venez d'entrer dans l'instance Map 44 !");
+        const auto *guildData = GuildHouse_Utils::GetGuildData(player);
+        InitMap(player, guildData);
+        player->SetPhaseMask(guildData->phase, true);
+        player->SetRestState(0);
+    }
+
+    // Méthode appelée quand un joueur quitte l'instance
+    static void OnPlayerLeave(Player *player) {
+        ChatHandler(player->GetSession()).PSendSysMessage("Vous quittez la Map 44 !");
+        player->RemoveRestState();
+        player->SetPhaseMask(GuildHouse_Utils::GetNormalPhase(player), true);
+    }
+
+private:
+    void InitMap(Player *player, const GuildHouse_Utils::GuildData *guild_data) const {
         if (guild_data->firstVisit) {
             CharacterDatabase.Query(
                 "Update `guild_house` SET `instanceId` = {}, `firstVisit` ={}  WHERE `guild`={}",
@@ -28,27 +49,29 @@ public:
                 "FROM `guild_member` gm "
                 "JOIN `guild_house` gh ON gm.`guildid` = gh.`guild`"
                 "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
-                player->GetGuild()->GetId(), player-> GetGUID().GetEntry());
+                player->GetGuild()->GetId(), player->GetGUID().GetEntry());
 
-            GuildHouse_Utils::SpawnStarterPortal(player, map->GetId());
-            GuildHouse_Utils::SpawnButlerNPC(player, map->GetId());
+            GuildHouse_Utils::SpawnStarterPortal(player, mapId);
+            GuildHouse_Utils::SpawnButlerNPC(player, mapId);
         }
     }
+};
 
-    void OnPlayerEnter(Map *map, Player *player) override {
-        const auto *guildData = GuildHouse_Utils::GetGuildData(player);
-        InitMap(player, map, guildData);
-        player->SetPhaseMask(guildData->phase, true);
-        player->SetRestState(0);
+class MapHelper : public InstanceMapScript {
+public:
+    // Constructeur
+    // Le 2e paramètre est le mapId que vous ciblez
+    explicit MapHelper(uint32 mapId)
+        : InstanceMapScript("MapHelper", mapId) {
+        this->mapId = mapId;
     }
 
+    uint32 mapId;
 
-    void OnPlayerLeave(Map *, Player *player) override {
-        player->RemoveRestState();
-        player->SetPhaseMask(GuildHouse_Utils::GetNormalPhase(player), true);
-    };
-
-
+    // Le core appelle cette méthode pour créer l'InstanceScript
+    InstanceScript *GetInstanceScript(InstanceMap *map) const override {
+        return new MapHelperInstanceMap(map, mapId);
+    }
 };
 
 
