@@ -57,11 +57,10 @@ private:
                 "WHERE gm.`guildid` = {} AND NOT gm.`guid`= {}",
                 player->GetGuild()->GetId(), player->GetGUID().GetEntry());
 
-            auto *starterPortal = HouseObjectManager::GetStarterPortal(player->GetTeamId(), mapId);
+            auto *starterPortal = HouseObjectManager::GetStarterPortal(player->GetTeamId(), mapId) -> ToStaticTransport();
             auto *butler = HouseObjectManager::GetButlerNPC(mapId) -> ToCreature();
-            AddObject(starterPortal, true);
-            AddObject(butler, true);
-            SaveToDB();
+            OnGameObjectCreate(starterPortal);
+            OnCreatureCreate(butler);
             //GuildHouse_Utils::SpawnStarterPortal(player, mapId);
             //GuildHouse_Utils::SpawnButlerNPC(player, mapId);
         }
