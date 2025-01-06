@@ -1,5 +1,5 @@
 //
-// Created by bruno boujenah on 03/01/2025.
+// Created by xpdemon on 03/01/2025.
 //
 
 
@@ -13,24 +13,6 @@ class MapHelper : public MapScript<Map> {
 public:
     explicit MapHelper(const uint32 mapId) : MapScript(mapId) {
     }
-
-    static GuildHouse_Utils::GuildData *GetGuildData(Player *player) {
-        auto *guildData = player->CustomData.GetDefault<GuildHouse_Utils::GuildData>("phase");
-        QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
-            player->GetGuildId());
-
-        if (result) {
-            do {
-                Field *fields = result->Fetch();
-                guildData->phase = fields[2].Get<uint32>();
-                guildData->instanceId = fields[8].Get<uint32>();
-                guildData->firstVisit = fields[9].Get<bool>();
-            } while (result->NextRow());
-        }
-        return guildData;
-    }
-
     static void InitMap(Player *player, const Map *map, const GuildHouse_Utils::GuildData *guild_data) {
         if (guild_data->firstVisit) {
             CharacterDatabase.Query(
@@ -50,7 +32,7 @@ public:
     }
 
     void OnPlayerEnter(Map *map, Player *player) override {
-        const auto *guildData = GetGuildData(player);
+        const auto *guildData = GuildHouse_Utils::GetGuildData(player);
         InitMap(player, map, guildData);
         player->SetPhaseMask(guildData->phase, true);
         player->SetRestState(0);

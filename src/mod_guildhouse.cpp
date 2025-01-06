@@ -224,15 +224,16 @@ public:
     }
 
 
-    static bool RemoveGuildHouse(const Player *player) {
-        uint32 guildPhase = GuildHouse_Utils::GetGuildPhase(player);
-        Map *map = sMapMgr->FindMap(1, 0);
+    static bool RemoveGuildHouse(Player *player) {
+        auto *guildData = GuildHouse_Utils::GetGuildData(player);
+        Map *map = sMapMgr->FindMap(guildData->map, guildData->instanceId);
         // Lets find all of the gameobjects to be removed
         QueryResult GameobjResult = WorldDatabase.Query(
-            "SELECT `guid` FROM `gameobject` WHERE `map` = 1 AND `phaseMask` = '{}'", guildPhase);
+            "SELECT `guid` FROM `gameobject` WHERE `map` = {} AND `phaseMask` = '{}'", guildData->map,
+            guildData->phase);
         // Lets find all of the creatures to be removed
         QueryResult CreatureResult = WorldDatabase.Query(
-            "SELECT `guid` FROM `creature` WHERE `map` = 1 AND `phaseMask` = '{}'", guildPhase);
+            "SELECT `guid` FROM `creature` WHERE `map` = {} AND `phaseMask` = '{}'", guildData->map, guildData->phase);
 
         // Remove creatures from the deleted guild house map
         if (CreatureResult) {
@@ -270,6 +271,7 @@ public:
 
         // Delete actual guild_house data from characters database
         CharacterDatabase.Query("DELETE FROM `guild_house` WHERE `guild`={}", player->GetGuildId());
+        CharacterDatabase.Query("DELETE FROM `character_instance` WHERE `instance`={}", guildData->instanceId);
 
         return true;
     }
@@ -299,12 +301,9 @@ public:
     }
 
     static void TeleportGuildHouse(const Guild *guild, Player *player, const Creature *creature) {
-        auto *guildData = player->CustomData.GetDefault<GuildHouse_Utils::GuildData>("phase");
-        const QueryResult result = CharacterDatabase.Query(
-            "SELECT `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
-            guild->GetId());
+        auto *guildData = GuildHouse_Utils::GetGuildData(player);
 
-        if (!result) {
+        if (guildData->id == 0) {
             ClearGossipMenuFor(player);
             if (player->GetGuild()->GetLeaderGUID() == player->GetGUID()) {
                 // Only leader of the guild can buy / sell guild house
@@ -320,19 +319,7 @@ public:
                 "Votre guilde ne possède pas de Maison de Guilde. Vous pouvez en acheter une dès maintenant !");
             return;
         }
-
-        do {
-            Field *fields = result->Fetch();
-            guildData->phase = fields[0].Get<uint32>();
-            uint32 map = fields[1].Get<uint32>();
-            guildData->posX = fields[2].Get<float>();
-            guildData->posY = fields[3].Get<float>();
-            guildData->posZ = fields[4].Get<float>();
-            guildData->ori = fields[5].Get<float>();
-            guildData->instanceId = fields[6].Get<uint32>();
-
-            player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
-        } while (result->NextRow());
+        player->TeleportTo(guildData->map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
     }
 };
 
@@ -344,7 +331,6 @@ public:
     void OnLogin(Player *player) override {
         GuildHouse_Utils::CheckPlayer(player);
     }
-
 
 
     void OnUpdateZone(Player *player, uint32 newZone, uint32 /*newArea*/) override {
@@ -471,32 +457,15 @@ public:
             return false;
         }
 
-        auto *guildData = player->CustomData.GetDefault<GuildHouse_Utils::GuildData>("phase");
-        QueryResult result = CharacterDatabase.Query(
-            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId` FROM `guild_house` WHERE `guild`={}",
-            player->GetGuildId());
+        auto *guildData = GuildHouse_Utils::GetGuildData(player);
 
-        if (!result) {
+        if (guildData->id == 0) {
             handler->SendSysMessage("Your guild does not own a Guild House!");
             handler->SetSentErrorMessage(true);
             return false;
         }
 
-        do {
-            Field *fields = result->Fetch();
-            // uint32 id = fields[0].Get<uint32>();        // fix for travis
-            // uint32 guild = fields[1].Get<uint32>();     // fix for travis
-            guildData->phase = fields[2].Get<uint32>();
-            uint32 map = fields[3].Get<uint32>();
-            guildData->posX = fields[4].Get<float>();
-            guildData->posY = fields[5].Get<float>();
-            guildData->posZ = fields[6].Get<float>();
-            guildData->ori = fields[7].Get<float>();
-            guildData->instanceId = fields[8].Get<uint32>();
-
-
-            player->TeleportTo(map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
-        } while (result->NextRow());
+        player->TeleportTo(guildData->map, guildData->posX, guildData->posY, guildData->posZ, guildData->ori);
 
         return true;
     }

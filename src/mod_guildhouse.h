@@ -14,14 +14,28 @@ public:
     virtual ~GuildHouse_Utils() = default;
     class GuildData : public DataMap::Base {
     public:
-        GuildData(): phase(0), posX(0), posY(0), posZ(0), ori(0), instanceId(0), firstVisit(false) {
+        GuildData(): id(0),
+        guild(0),
+        phase(0),
+        map(0),
+        posX(0),
+        posY(0),
+        posZ(0),
+        ori(0),
+        instanceId(0),
+        firstVisit(false) {
         }
 
-        GuildData(uint32 phase, float posX, float posY, float posZ, float ori) : phase(phase), posX(posX), posY(posY),
+        GuildData(uint32 id,uint32 guild,uint32 phase, float posX, float posY, float posZ, float ori) : id(0), guild(0),
+            phase(phase),
+            map(0), posX(posX), posY(posY),
             posZ(posZ), ori(ori), instanceId(0), firstVisit(true) {
         }
 
+        uint32 id;
+        uint32 guild;
         uint32 phase;
+        uint32 map;
         float posX;
         float posY;
         float posZ;
@@ -29,6 +43,29 @@ public:
         uint32 instanceId;
         bool firstVisit;
     };
+    static GuildData *GetGuildData(Player *player) {
+        auto *guildData = player->CustomData.GetDefault<GuildData>("phase");
+        QueryResult result = CharacterDatabase.Query(
+            "SELECT `id`, `guild`, `phase`, `map`,`positionX`, `positionY`, `positionZ`, `orientation`,`instanceId`,`firstVisit` FROM guild_house WHERE `guild` = {}",
+            player->GetGuildId());
+
+        if (result) {
+            do {
+                Field *fields = result->Fetch();
+                guildData->id = fields[0].Get<uint32>();
+                guildData ->guild = fields[1].Get<uint32>();
+                guildData->phase = fields[2].Get<uint32>();
+                guildData->map = fields[3].Get<uint32>();
+                guildData->posX = fields[4].Get<float>();
+                guildData->posY = fields[5].Get<float>();
+                guildData->posZ = fields[6].Get<float>();
+                guildData->ori = fields[7].Get<float>();
+                guildData->instanceId = fields[8].Get<uint32>();
+                guildData->firstVisit = fields[9].Get<bool>();
+            } while (result->NextRow());
+        }
+        return guildData;
+    }
     static uint32 GetGuildPhase(const Guild *guild) {
         // Version "simple"
         //return player->GetGuildId() + 10;
