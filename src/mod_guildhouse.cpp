@@ -47,7 +47,7 @@ public:
             "SELECT `guid` FROM `creature` WHERE `map`={} AND `phaseMask`={}", guildData->map, guildData->phase);
 
 
-        Map *map = sMapMgr->FindMap(guildData ->map, guildData->instanceId);
+        Map *map = sMapMgr->FindMap(guildData->map, guildData->instanceId);
         // Remove creatures from the deleted guild house map
         if (CreatureResult) {
             do {
@@ -83,7 +83,7 @@ public:
         }
 
         // Delete actual guild_house data from characters database
-        CharacterDatabase.Query("DELETE FROM `guild_house` WHERE `guild`={}", guildData ->id);
+        CharacterDatabase.Query("DELETE FROM `guild_house` WHERE `guild`={}", guildData->id);
 
         return true;
     }
@@ -372,6 +372,7 @@ public:
         {
             {"teleport", HandleGuildHouseTeleCommand, SEC_PLAYER, Console::Yes},
             {"butler", HandleSpawnButlerCommand, SEC_PLAYER, Console::Yes},
+            {"mj", HandleSpawnManagerCommand, SEC_GAMEMASTER, Console::Yes},
         };
 
         static ChatCommandTable GuildHouseCommandBaseTable =
@@ -391,6 +392,40 @@ public:
         if (player->GetGuildId() == 0)
             return 0;
         return 1 << (player->GetGuildId() - 1);
+    }
+
+        static bool HandleSpawnManagerCommand(ChatHandler *handler) {
+        Player *player = handler->GetSession()->GetPlayer();
+        Map *map = player->GetMap();
+
+        float posX = player->GetPosition().GetPositionX() + 1.0f;
+        float posY = player->GetPosition().GetPositionY();
+        float posZ = player->GetPosition().GetPositionZ();
+        float ori = player->GetOrientation();
+
+        auto *creature = new Creature();
+        if (!creature->Create(map->GenerateLowGuid<HighGuid::Unit>(), map, GetGuildPhase(player), 500033, 0, posX, posY,
+                              posZ, ori)) {
+            handler->SendSysMessage("Vous avez déjà le Majordome de la Maison de Guilde !");
+            handler->SetSentErrorMessage(true);
+            delete creature;
+            return false;
+        }
+        creature->SaveToDB(player->GetMapId(), (1 << player->GetMap()->GetSpawnMode()), GetGuildPhase(player));
+        uint32 lowguid = creature->GetSpawnId();
+
+        creature->CleanupsBeforeDelete();
+        delete creature;
+        creature = new Creature();
+        if (!creature->LoadCreatureFromDB(lowguid, player->GetMap())) {
+            handler->SendSysMessage("Something went wrong when adding the Butler.");
+            handler->SetSentErrorMessage(true);
+            delete creature;
+            return false;
+        }
+
+        sObjectMgr->AddCreatureToGrid(lowguid, sObjectMgr->GetCreatureData(lowguid));
+        return true;
     }
 
     static bool HandleSpawnButlerCommand(ChatHandler *handler) {
