@@ -17,7 +17,7 @@
 #include "CreatureAI.h"
 #include "mod_guildhouse.h"
 
-int cost;
+
 
 class GuildhouseMjManager : public CreatureScript
 {
@@ -135,7 +135,7 @@ public:
             }
             case 9858: // Neutral Auctioneer
             {
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
             }
@@ -185,11 +185,11 @@ public:
             // Cases existants : spawns NPC / objects
             // -------------------------------------------
             case 30605: // Banker
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
             case 500032: // Innkeeper
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
             // Entraîneurs de classe
@@ -203,7 +203,7 @@ public:
             case 26331: // Warlock
             case 26332: // Warrior
             case 29195: // Death Knight
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
 
@@ -225,7 +225,7 @@ public:
             case 19185:  // Cooking
             case 2834:   // Fishing
             case 19184:  // First Aid
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
 
@@ -237,24 +237,24 @@ public:
             case 29493: // Ammo & Repair Vendor
             case 28690: // Stable Master
             case 2622:  // Poisons Vendor
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
 
             // Objects divers
             case 184137: // Mailbox
-                cost = 0;
+
                 SpawnObject(action, player);
                 break;
             case 6491: // Spirit Healer
-                cost = 0;
+
                 SpawnNPC(action, player);
                 break;
             case 1685:   // Forge
             case 4087:   // Anvil
             case 187293: // Guild Vault
             case 191028: // Barber Chair
-                cost = 0;
+
                 SpawnObject(action, player);
                 break;
             // Portails
@@ -266,7 +266,7 @@ public:
             case 500007: // Undercity Portal
             case 500008: // Shattrath Portal
             case 500009: // Dalaran Portal
-                cost = 0;
+
                 SpawnObject(action, player);
                 break;
             default: ;
@@ -324,7 +324,7 @@ public:
         }
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
-        player->ModifyMoney(-cost);
+
         CloseGossipMenuFor(player);
     }
 
@@ -386,7 +386,6 @@ public:
         }
 
         sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGameObjectData(guidLow));
-        player->ModifyMoney(-cost);
         CloseGossipMenuFor(player);
     }
 
