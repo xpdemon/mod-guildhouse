@@ -287,7 +287,7 @@ public:
         posZ = player->GetPositionZ();
         ori = player->GetOrientation();
 
-        auto update = WorldDatabase.Query("update `guild_house_spawns` SET `posX` = ?, `posY` = ? , `posZ` = ? , `orientation` = ? WHERE `map` = ? and `entry` = ?", posX, posY, posZ, ori, mapId, entry);
+        auto update = WorldDatabase.Query("update `guild_house_spawns` SET `posX` = {}, `posY` = ? , `posZ` = {} , `orientation` = {} WHERE `map` = {} and `entry` = {}", posX, posY, posZ, ori, mapId, entry);
 
         QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} AND `map`={}", entry, mapId);
         if (!result)
@@ -339,7 +339,7 @@ public:
         posZ = player->GetPositionZ();
         ori = player->GetOrientation();
 
-        auto update = WorldDatabase.Query("update `guild_house_spawns` SET `posX` = ?, `posY` = ? , `posZ` = ? , `orientation` = ? WHERE `map` = ? and `entry` = ?", posX, posY, posZ, ori, mapId, entry);
+        auto update = WorldDatabase.Query("update `guild_house_spawns` SET `posX` = {}, `posY` = {} , `posZ` = {} , `orientation` = {} WHERE `map` = {} and `entry` = {}", posX, posY, posZ, ori, mapId, entry);
         QueryResult result = WorldDatabase.Query("SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} and `map`= {}", entry, mapId);
         if (!result)
             return;
