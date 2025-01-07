@@ -184,27 +184,13 @@ public:
 class HouseObjectManager {
 public:
     static void SpawnStarterPortal(Player *player, uint32 mapId) {
-        uint32 entry = 0;
+
+        auto entry = player->GetTeamId() == TEAM_ALLIANCE ? 500000 : 500004;
+        const auto map = sMapMgr->FindMap(mapId, player->GetInstanceId());
         float posX;
         float posY;
         float posZ;
         float ori;
-
-
-        Map *map = sMapMgr->FindMap(mapId, player->GetInstanceId());
-
-        if (player->GetTeamId() == TEAM_ALLIANCE) {
-            // Portal to Stormwind
-            entry = 500000;
-        } else {
-            // Portal to Orgrimmar
-            entry = 500004;
-        }
-
-        if (entry == 0) {
-            LOG_INFO("modules", "Error with SpawnStarterPortal in GuildHouse Module!");
-            return;
-        }
 
         QueryResult result = WorldDatabase.Query(
             "SELECT `posX`, `posY`, `posZ`, `orientation` FROM `guild_house_spawns` WHERE `entry`={} and `map`={}",
@@ -244,7 +230,7 @@ public:
         GameObject *object = sObjectMgr->IsGameObjectStaticTransport(objectInfo->entry)
                                  ? new StaticTransport()
                                  : new GameObject();
-        ObjectGuid::LowType guidLow = player->GetMap()->GenerateLowGuid<HighGuid::GameObject>();
+        ObjectGuid::LowType guidLow = map ->GenerateLowGuid<HighGuid::GameObject>();
 
         if (!object->Create(guidLow, objectInfo->entry, map, GuildHouse_Utils::GetGuildPhase(player), posX, posY, posZ,
                             ori, G3D::Quat(), 0, GO_STATE_READY)) {
@@ -254,8 +240,8 @@ public:
         }
 
         // fill the gameobject data and save to the db
-        object->SaveToDB(sMapMgr->FindMap(mapId, player->GetInstanceId())->GetId(),
-                         (1 << sMapMgr->FindMap(mapId, player->GetInstanceId())->GetSpawnMode()),
+        object->SaveToDB(mapId,
+                         (1 << map ->GetSpawnMode()),
                          GuildHouse_Utils::GetGuildPhase(player));
         guidLow = object->GetSpawnId();
         // delete the old object and do a clean load from DB with a fresh new GameObject instance.
@@ -264,7 +250,7 @@ public:
 
         object = sObjectMgr->IsGameObjectStaticTransport(objectInfo->entry) ? new StaticTransport() : new GameObject();
         // this will generate a new guid if the object is in an instance
-        if (!object->LoadGameObjectFromDB(guidLow, sMapMgr->FindMap(mapId, player->GetInstanceId()), true)) {
+        if (!object->LoadGameObjectFromDB(guidLow, map, true)) {
             delete object;
             return;
         }
@@ -281,7 +267,7 @@ public:
         float posZ;
         float ori;
 
-        Map *map = sMapMgr->FindMap(mapId, player->GetInstanceId());
+        auto *map = sMapMgr->FindMap(mapId, player->GetInstanceId());
         auto *creature = new Creature();
 
         QueryResult result = WorldDatabase.Query(
