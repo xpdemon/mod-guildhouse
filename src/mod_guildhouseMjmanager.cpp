@@ -320,14 +320,21 @@ public:
     static void SpawnNPC(uint32 action, Player *player) {
         auto mapId = player->GetMapId();
 
+        uint32 entry;
 
         float posX = player->GetPositionX();
         float posY = player->GetPositionY();
         float posZ = player->GetPositionZ();
         float ori = player->GetOrientation();
 
-        auto entry = WorldDatabase.Query(
+        auto entryResult = WorldDatabase.Query(
             "select `entry` from `guild_house_spawns` where `actionId` = {} and `map` = {}", action, mapId);
+        if (!entryResult)
+            return;
+        do {
+            Field *fields = entry->Fetch();
+            entry = fields[0].Get<uint32>();
+        } while (entry->NextRow());
 
         auto update = WorldDatabase.Query(
             "update `guild_house_spawns` SET `posX` = {}, `posY` = {} , `posZ` = {} , `orientation` = {} WHERE `map` = {} and `entry` = {}",
