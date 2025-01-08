@@ -327,14 +327,14 @@ public:
         float posZ = player->GetPositionZ();
         float ori = player->GetOrientation();
 
-        auto entryResult = WorldDatabase.Query(
+        const auto entryResult = WorldDatabase.Query(
             "select `entry` from `guild_house_spawns` where `actionId` = {} and `map` = {}", action, mapId);
         if (!entryResult)
             return;
         do {
-            Field *fields = entry->Fetch();
+            const Field *fields = entryResult-> Fetch();
             entry = fields[0].Get<uint32>();
-        } while (entry->NextRow());
+        } while (entryResult ->NextRow());
 
         auto update = WorldDatabase.Query(
             "update `guild_house_spawns` SET `posX` = {}, `posY` = {} , `posZ` = {} , `orientation` = {} WHERE `map` = {} and `entry` = {}",
