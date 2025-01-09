@@ -1,71 +1,133 @@
 CREATE TABLE IF NOT EXISTS `guild_house_spawns`
 (
-    `id`          int(11) NOT NULL AUTO_INCREMENT,
-    `entry`       int(11) NOT NULL DEFAULT '0',
-    `map`         int(11) NOT NULL DEFAULT '0',
-    `posX`        float   NOT NULL DEFAULT '0',
-    `posY`        float   NOT NULL DEFAULT '0',
-    `posZ`        float   NOT NULL DEFAULT '0',
-    `orientation` float   NOT NULL DEFAULT '0',
-    `comment`     varchar(500)     DEFAULT '0',
-    PRIMARY KEY (`id`)
+    id          int auto_increment       primary key,
+    entry       int          default 0   not null,
+    map         int          default 0   not null,
+    posX        float        default 0   not null,
+    posY        float        default 0   not null,
+    posZ        float        default 0   not null,
+    orientation float        default 0   not null,
+    comment     varchar(500) default '0' null,
+    actionId    int                      not null
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 51
   DEFAULT CHARSET = utf8;
 
-REPLACE INTO `guild_house_spawns` (`id`, `entry`, `posX`, `posY`, `posZ`, `orientation`, `comment`, `map`)
-VALUES (1, 26327, 16216.5, 16279.4, 20.9306, 0.552869, 'Paladin Trainer', 1),
-       (2, 26324, 16221.3, 16275.7, 20.9285, 1.37363, 'Druid Trainer', 1),
-       (3, 26325, 16218.6, 16277, 20.9872, 0.967188, 'Hunter Trainer', 1),
-       (4, 26326, 16224.9, 16274.9, 20.9319, 1.58765, 'Mage Trainer', 1),
-       (5, 26328, 16227.9, 16275.9, 20.9254, 1.9941, 'Priest Trainer', 1),
-       (6, 26329, 16231.4, 16278.1, 20.9222, 2.20026, 'Rogue Trainer', 1),
-       (7, 26330, 16235.5, 16280.8, 20.9257, 2.18652, 'Shaman Trainer', 1),
-       (8, 26331, 16240.8, 16283.3, 20.9299, 1.86843, 'Warlock Trainer', 1),
-       (9, 26332, 16246.6, 16284.5, 20.9301, 1.68975, 'Warrior Trainer', 1),
-       (10, 500032, 16218.9, 16284.5, 13.1761, 6.18533, 'Innkeeper', 1),
-       (11, 30605, 16228.0, 16280.5, 13.1761, 2.98877, 'Banker', 1),
-       (12, 29195, 16252.3, 16284.9, 20.9324, 1.79537, 'Death Knight Trainer', 1),
-       (13, 2836, 16220.5, 16302.3, 13.176, 6.14647, 'Blacksmithing Trainer', 1),
-       (14, 8128, 16220.2, 16299.6, 13.178, 6.22894, 'Mining Trainer', 1),
-       (15, 8736, 16219.8, 16296.9, 13.1746, 6.24465, 'Engineering Trainer', 1),
-       (16, 18774, 16222.4, 16293, 13.1813, 1.51263, 'Jewelcrafting Trainer (Alliance)', 1),
-       (17, 18751, 16222.4, 16293, 13.1813, 1.51263, 'Jewelcrafting Trainer (Horde)', 1),
-       (18, 18773, 16227.5, 16292.3, 13.1839, 1.49691, 'Enchanting Trainer (Alliance)', 1),
-       (19, 18753, 16227.5, 16292.3, 13.1839, 1.49691, 'Enchanting Trainer (Horde)', 1),
-       (20, 30721, 16231.6, 16301, 13.1757, 3.07372, 'Inscription Trainer (Alliance)', 1),
-       (21, 30722, 16231.6, 16301, 13.1757, 3.07372, 'Inscription Trainer (Horde)', 1),
-       (22, 19187, 16231.2, 16295, 13.1761, 3.06574, 'Leatherworking Trainer', 1),
-       (23, 19180, 16228.9, 16304.7, 13.1819, 4.64831, 'Skinning Trainer', 1),
-       (24, 19052, 16218.1, 16281.8, 13.1756, 6.1975, 'Alchemy Trainer', 1),
-       (25, 908, 16218.3, 16284.3, 13.1756, 6.1975, 'Herbalism Trainer', 1),
-       (26, 2627, 16220.4, 16278.7, 13.1756, 1.46157, 'Tailoring Trainer', 1),
-       (27, 19184, 16225, 16310.9, 29.262, 6.22119, 'First Aid Trainer', 1),
-       (28, 2834, 16225.3, 16313.9, 29.262, 6.28231, 'Fishing Trainer', 1),
-       (29, 19185, 16227, 16278, 13.1762, 1.4872, 'Cooking Trainer', 1),
-       (30, 8719, 16242, 16291.6, 22.9311, 1.52061, 'Alliance Auctioneer', 1),
-       (31, 9856, 16242, 16291.6, 22.9311, 1.52061, 'Horde Auctioneer', 1),
-       (32, 184137, 16220.3, 16272, 12.9736, 4.45592, 'Mailbox (Object)', 1),
-       (33, 1685, 16253.8, 16294.3, 13.1758, 6.11938, 'Forge (Object)', 1),
-       (34, 4087, 16254.4, 16298.7, 13.1758, 3.36027, 'Anvil (Object)', 1),
-       (35, 500000, 16232.9, 16264.1, 13.55570, 3.028813, 'Portal: Stormwind (Object)', 1),
-       (36, 500001, 16232.8, 16257.1, 13.93456, 3.028813, 'Portal: Darnassus (Object)', 1),
-       (37, 500002, 16231.3, 16254.2, 13.65647, 3.028813, 'Portal: Exodar (Object)', 1),
-       (38, 500003, 16233.4, 16260.6, 13.84770, 3.028813, 'Portal: Ironforge (Object)', 1),
-       (39, 500004, 16232.9, 16264.1, 13.55570, 3.028813, 'Portal: Orgrimmar (Object)', 1),
-       (40, 500005, 16231.3, 16254.2, 13.65647, 3.028813, 'Portal: Silvermoon (Object)', 1),
-       (41, 500006, 16233.4, 16260.6, 13.84770, 3.028813, 'Portal: Thunder Bluff (Object)', 1),
-       (42, 500007, 16232.8, 16257.1, 13.93456, 3.028813, 'Portal: Undercity (Object)', 1),
-       (43, 500008, 16211.1, 16266.9, 13.7458, 5.6724, 'Portal: Shattrath (Object)', 1),
-       (44, 500009, 16213.9, 16270.5, 13.1378, 5.4996, 'Portal: Dalaran (Object)', 1),
-       (45, 187293, 16230.5, 16283.5, 13.9061, 3, 'Guild Vault (Object)', 1),
-       (46, 28692, 16236.2, 16315.7, 20.8454, 4.64365, 'Trade Supplies', 1),
-       (47, 28776, 16223.7, 16297.9, 20.8454, 6.17044, 'Tabard Vendor', 1),
-       (48, 4255, 16230.2, 16316.1, 20.8455, 4.64365, 'Food & Drink Vendor', 1),
-       (49, 6491, 16319.937, 16242.404, 24.4747, 2.206830, 'Spirit Healer', 1),
-       (50, 191028, 16255.5, 16304.9, 20.9785, 2.97516, 'Barber Chair (Object)', 1),
-       (51, 29636, 16233.2, 16315.9, 20.8454, 4.64365, 'Reagent Vendor', 1),
-       (52, 29493, 16229.1, 16286.4, 13.176, 3.03831, 'Ammo & Repair Vendor', 1),
-       (53, 28690, 16226.97, 16267.9, 13.15, 4.6533, 'Stable Master', 1),
-       (54, 9858, 16238.2, 16291.8, 22.9306, 1.55386, 'Neutral Auctioneer', 1),
-       (55, 2622, 16242.8, 16302.1, 13.176, 4.55570, 'Poisons Vendor', 1);
+
+-- Trainers
+SET @ACTION_ID_TRAINER_PALADIN = 1;
+SET @ACTION_ID_TRAINER_DRUID = 2;
+SET @ACTION_ID_TRAINER_HUNTER = 3;
+SET @ACTION_ID_TRAINER_MAGE = 4;
+SET @ACTION_ID_TRAINER_PRIEST = 5;
+SET @ACTION_ID_TRAINER_ROGUE = 6;
+SET @ACTION_ID_TRAINER_SHAMAN = 7;
+SET @ACTION_ID_TRAINER_WARLOCK = 8;
+SET @ACTION_ID_TRAINER_WARRIOR = 9;
+SET @ACTION_ID_INNKEEPER = 10;
+SET @ACTION_ID_BANKER = 11;
+SET @ACTION_ID_TRAINER_DEATH_KNIGHT = 12;
+SET @ACTION_ID_TRAINER_BLACKSMITHING = 13;
+SET @ACTION_ID_TRAINER_MINING = 14;
+SET @ACTION_ID_TRAINER_ENGINEERING = 15;
+SET @ACTION_ID_TRAINER_JEWELCRAFTING_ALLIANCE = 16;
+SET @ACTION_ID_TRAINER_JEWELCRAFTING_HORDE = 17;
+SET @ACTION_ID_TRAINER_ENCHANTING_ALLIANCE = 18;
+SET @ACTION_ID_TRAINER_ENCHANTING_HORDE = 19;
+SET @ACTION_ID_TRAINER_INSCRIPTION_ALLIANCE = 20;
+SET @ACTION_ID_TRAINER_INSCRIPTION_HORDE = 21;
+SET @ACTION_ID_TRAINER_LEATHERWORKING = 22;
+SET @ACTION_ID_TRAINER_SKINNING = 23;
+SET @ACTION_ID_TRAINER_ALCHEMY = 24;
+SET @ACTION_ID_TRAINER_HERBALISM = 25;
+SET @ACTION_ID_TRAINER_TAILORING = 26;
+SET @ACTION_ID_TRAINER_FIRST_AID = 27;
+SET @ACTION_ID_TRAINER_FISHING = 28;
+SET @ACTION_ID_TRAINER_COOKING = 29;
+
+-- Auctioneers
+SET @ACTION_ID_AUCTIONEER_ALLIANCE = 200;
+SET @ACTION_ID_AUCTIONEER_HORDE = 201;
+SET @ACTION_ID_AUCTIONEER_NEUTRAL = 40;
+
+-- Objects
+SET @ACTION_ID_OBJECT = 0;
+
+-- Vendors
+SET @ACTION_ID_VENDOR_TRADE_SUPPLIES = 32;
+SET @ACTION_ID_VENDOR_TABARD = 33;
+SET @ACTION_ID_VENDOR_FOOD_DRINK = 34;
+SET @ACTION_ID_VENDOR_SPIRIT_HEALER = 39;
+SET @ACTION_ID_VENDOR_REAGENT = 35;
+SET @ACTION_ID_VENDOR_AMMO_REPAIR = 36;
+SET @ACTION_ID_VENDOR_STABLE_MASTER = 37;
+SET @ACTION_ID_VENDOR_POISONS = 38;
+
+-- Maps
+SET @MAP_MONASTERY = 44;
+
+INSERT INTO `guild_house_spawns`
+(entry, map, posX, posY, posZ, orientation, comment, actionId)
+VALUES
+    (9000, @MAP_44, 244.071, -100.185, 23.7741, 0.0247696, 'Paladin Trainer', @ACTION_ID_TRAINER_PALADIN),
+    (90001, @MAP_44, 244.452, -112.835, 23.7744, 0.84472, 'Warrior Trainer', @ACTION_ID_TRAINER_WARRIOR),
+    (26324, @MAP_44, 191.166, 32.54, 31.0128, 2.42414, 'Druid Trainer', @ACTION_ID_TRAINER_DRUID),
+    (26325, @MAP_44, 186.517, -125.225, 18.2734, 4.29185, 'Hunter Trainer', @ACTION_ID_TRAINER_HUNTER),
+    (26326, @MAP_44, 176.315, 45.2884, 31.4936, 4.86673, 'Mage Trainer', @ACTION_ID_TRAINER_MAGE),
+    (26328, @MAP_44, 374.447, -84.3854, 30.8304, 4.68608, 'Priest Trainer', @ACTION_ID_TRAINER_PRIEST),
+    (26329, @MAP_44, 277.601, -25.3757, 31.4936, 5.22093, 'Rogue Trainer', @ACTION_ID_TRAINER_ROGUE),
+    (26330, @MAP_44, 188.253, 35.3002, 31.1657, 5.35839, 'Shaman Trainer', @ACTION_ID_TRAINER_SHAMAN),
+    (26331, @MAP_44, 176.897, 41.3578, 31.4936, 1.66859, 'Warlock Trainer', @ACTION_ID_TRAINER_WARLOCK),
+    (500032, @MAP_44, 316.826, -114.306, 32.0728, 1.49611, 'Innkeeper', @ACTION_ID_INNKEEPER),
+    (30605, @MAP_44, 374.477, -159.894, 29.533, 1.65006, 'Banker', @ACTION_ID_BANKER),
+    (29195, @MAP_44, 266.102, -99.6021, 18.6794, 6.19876, 'Death Knight Trainer', @ACTION_ID_TRAINER_DEATH_KNIGHT),
+    (2836, @MAP_44, 249.956, -19.0612, 31.4941, 4.91384, 'Blacksmithing Trainer', @ACTION_ID_TRAINER_BLACKSMITHING),
+    (8128, @MAP_44, 301.849, -11.0002, 32.3706, 2.05029, 'Mining Trainer', @ACTION_ID_TRAINER_MINING),
+    (8736, @MAP_44, 299.517, -7.44618, 32.3706, 5.45892, 'Engineering Trainer', @ACTION_ID_TRAINER_ENGINEERING),
+    (18774, @MAP_44, 318.104, -20.7126, 30.8265, 2.70217, 'Jewelcrafting Trainer (Alliance)', @ACTION_ID_TRAINER_JEWELCRAFTING_ALLIANCE),
+    (18751, @MAP_44, 318.104, -20.7126, 30.8265, 2.70217, 'Jewelcrafting Trainer (Horde)', @ACTION_ID_TRAINER_JEWELCRAFTING_HORDE),
+    (18773, @MAP_44, 325.619, -31.004, 31.6054, 6.25845, 'Enchanting Trainer (Alliance)', @ACTION_ID_TRAINER_ENCHANTING_ALLIANCE),
+    (18753, @MAP_44, 325.619, -31.004, 31.6054, 6.25845, 'Enchanting Trainer (Horde)', @ACTION_ID_TRAINER_ENCHANTING_HORDE),
+    (30721, @MAP_44, 318.104, -42.3516, 30.8261, 3.26136, 'Inscription Trainer (Alliance)', @ACTION_ID_TRAINER_INSCRIPTION_ALLIANCE),
+    (30722, @MAP_44, 318.104, -42.3516, 30.8261, 3.26136, 'Inscription Trainer (Horde)', @ACTION_ID_TRAINER_INSCRIPTION_HORDE),
+    (19187, @MAP_44, 326.037, -64.1845, 30.8285, 4.93898, 'Leatherworking Trainer', @ACTION_ID_TRAINER_LEATHERWORKING),
+    (19180, @MAP_44, 252.774, -57.8927, 31.4935, 2.571, 'Skinning Trainer', @ACTION_ID_TRAINER_SKINNING),
+    (19052, @MAP_44, 204.972, 18.3547, 30.8438, 5.35838, 'Alchemy Trainer', @ACTION_ID_TRAINER_ALCHEMY),
+    (908, @MAP_44, 207.142, 15.5164, 30.8404, 2.51916, 'Herbalism Trainer', @ACTION_ID_TRAINER_HERBALISM),
+    (2627, @MAP_44, 321.2, 1.63576, 30.8284, 1.25311, 'Tailoring Trainer', @ACTION_ID_TRAINER_TAILORING),
+    (19184, @MAP_44, 278.069, -29.4511, 31.4941, 1.89556, 'First Aid Trainer', @ACTION_ID_TRAINER_FIRST_AID),
+    (2834, @MAP_44, 0, 0, 0, 0, 'Fishing Trainer', @ACTION_ID_TRAINER_FISHING),
+    (19185, @MAP_44, 184.776, -134.523, 18.0228, 3.02418, 'Cooking Trainer', @ACTION_ID_TRAINER_COOKING),
+
+    -- Auctioneers
+    (8719, @MAP_44, 297.376, -27.5766, 32.3707, 4.65389, 'Alliance Auctioneer', @ACTION_ID_AUCTIONEER_ALLIANCE),
+    (9856, @MAP_44, 297.376, -27.5766, 32.3707, 4.65389, 'Horde Auctioneer', @ACTION_ID_AUCTIONEER_HORDE),
+
+    -- Objects
+    (184137, @MAP_44, 320.278, -101.218, 30.8289, 0.48138, 'Mailbox (Object)', @ACTION_ID_OBJECT),
+    (1685, @MAP_44, 252.091, -17.1653, 31.4941, 2.47204, 'Forge (Object)', @ACTION_ID_OBJECT),
+    (4087, @MAP_44, 254.012, -18.6854, 31.4935, 1.12429, 'Anvil (Object)', @ACTION_ID_OBJECT),
+    (500000, @MAP_44, 374.32, -149.57, 29.53, 1.47, 'Portal: Stormwind (Object)', @ACTION_ID_OBJECT),
+    (500001, @MAP_44, 198.997, -66.8651, 18.4282, 3.97532, 'Portal: Darnassus (Object)', @ACTION_ID_OBJECT),
+    (500002, @MAP_44, 199.358, -89.2263, 18.1964, 2.78544, 'Portal: Exodar (Object)', @ACTION_ID_OBJECT),
+    (500003, @MAP_44, 178.958, -68.0585, 18.1869, 2.67549, 'Portal: Ironforge (Object)', @ACTION_ID_OBJECT),
+    (500004, @MAP_44, 374.32, -149.57, 29.53, 1.47, 'Portal: Orgrimmar (Object)', @ACTION_ID_OBJECT),
+    (500005, @MAP_44, 374.32, -149.57, 29.53, 1.47, 'Portal: Silvermoon (Object)', @ACTION_ID_OBJECT),
+    (500006, @MAP_44, 178.958, -68.0585, 18.1869, 2.67549, 'Portal: Thunder Bluff (Object)', @ACTION_ID_OBJECT),
+    (500007, @MAP_44, 199.358, -89.2263, 18.1964, 2.78544, 'Portal: Undercity (Object)', @ACTION_ID_OBJECT),
+    (500008, @MAP_44, 177.816, -91.1585, 18.4848, 0.541558, 'Portal: Shattrath (Object)', @ACTION_ID_OBJECT),
+    (500009, @MAP_44, 194.831, -79.7246, 18.0228, 3.19149, 'Portal: Dalaran (Object)', @ACTION_ID_OBJECT),
+    (187293, @MAP_44, 336.531, -76.1446, 30.8294, 4.51362, 'Guild Vault (Object)', @ACTION_ID_OBJECT),
+
+    -- Vendors
+    (28692, @MAP_44, 383.602, -36.0061, 30.8198, 2.07732, 'Trade Supplies', @ACTION_ID_VENDOR_TRADE_SUPPLIES),
+    (28776, @MAP_44, 364.537, -34.0004, 30.8211, 1.23616, 'Tabard Vendor', @ACTION_ID_VENDOR_TABARD),
+    (4255, @MAP_44, 318.035, -6.78289, 30.8288, 4.97937, 'Food & Drink Vendor', @ACTION_ID_VENDOR_FOOD_DRINK),
+    (6491, @MAP_44, 197.181, 26.1058, 30.8391, 0.060106, 'Spirit Healer', @ACTION_ID_VENDOR_SPIRIT_HEALER),
+    (191028, @MAP_44, 330.012, -106.492, 30.8289, 4.61775, 'Barber Chair (Object)', @ACTION_ID_OBJECT),
+    (29636, @MAP_44, 387.258, -9.55225, 30.8255, 3.06692, 'Reagent Vendor', @ACTION_ID_VENDOR_REAGENT),
+    (29493, @MAP_44, 241.898, -102.726, 18.6794, 1.46863, 'Ammo & Repair Vendor', @ACTION_ID_VENDOR_AMMO_REPAIR),
+    (28690, @MAP_44, 179.514, -136.751, 18.0228, 1.66862, 'Stable Master', @ACTION_ID_VENDOR_STABLE_MASTER),
+    (9858, @MAP_44, 302.528, -27.2463, 32.3707, 4.66017, 'Neutral Auctioneer', @ACTION_ID_AUCTIONEER_NEUTRAL),
+    (500031, @MAP_44, 83.14, -0.8, 18.67, 3.18, 'Butler', @ACTION_ID_OBJECT),
+    (2622, @MAP_44, 276.235, -61.8909, 31.4941, 4.7921, 'Poisons Vendor', @ACTION_ID_VENDOR_POISONS);
